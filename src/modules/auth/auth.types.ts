@@ -1,4 +1,5 @@
-import { UserRole } from '../../types/models';
+import type { UserRole } from "../../types/models";
+
 
 export interface SignupRequestBody {
   name: string;

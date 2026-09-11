@@ -9,8 +9,6 @@ export interface UserRecord {
   created_at: Date;
   updated_at: Date;
 }
-
-// User shape safe to return in API responses (never includes password)
 export interface PublicUser {
   id: number;
   name: string;

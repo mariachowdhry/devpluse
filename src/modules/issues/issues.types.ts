@@ -1,4 +1,5 @@
-import { IssueStatus, IssueType } from '../../types/models';
+import type { IssueStatus, IssueType } from "../../types/models";
+
 
 export interface CreateIssueBody {
   title: string;

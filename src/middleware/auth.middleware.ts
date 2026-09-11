@@ -1,13 +1,9 @@
-import { NextFunction, Request, Response } from 'express';
+
+import type { NextFunction, Request, Response } from 'express';
 import { AppError } from '../utils/errors.util';
 import { verifyToken } from '../utils/jwt.util';
 
-/**
- * Verifies the JWT sent in the `Authorization` header (per spec, the raw
- * token is sent directly - not prefixed with "Bearer "). Also tolerates
- * a "Bearer <token>" value for compatibility with standard HTTP clients.
- * Attaches the decoded payload to req.user on success.
- */
+
 export function authenticate(req: Request, _res: Response, next: NextFunction): void {
   const header = req.headers.authorization;
 

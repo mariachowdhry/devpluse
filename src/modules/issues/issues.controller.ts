@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { asyncHandler, AppError } from '../../utils/errors.util';
 import { sendSuccess } from '../../utils/response.util';
 import {
@@ -8,7 +8,9 @@ import {
   validateIssueStatus,
 } from '../../utils/validation.util';
 import * as issuesService from './issues.service';
-import { CreateIssueBody, GetIssuesQuery, UpdateIssueBody } from './issues.types';
+import type { CreateIssueBody, GetIssuesQuery, UpdateIssueBody } from './issues.types';
+import type { IssueType, IssueStatus } from '../../types/models';
+
 
 export const createIssue = asyncHandler(async (req: Request, res: Response) => {
   const body = req.body as Partial<CreateIssueBody>;
@@ -25,7 +27,7 @@ export const createIssue = asyncHandler(async (req: Request, res: Response) => {
     throw AppError.badRequest('Validation failed', errors);
   }
 
-  // reporter_id comes from the decoded JWT, never from the request body.
+
   const reporterId = req.user!.id;
 
   const issue = await issuesService.createIssue(reporterId, {
@@ -43,9 +45,11 @@ export const getAllIssues = asyncHandler(async (req: Request, res: Response) => 
   if (sort !== undefined && sort !== 'newest' && sort !== 'oldest') {
     throw AppError.badRequest('sort must be "newest" or "oldest"');
   }
+
   if (type !== undefined && type !== 'bug' && type !== 'feature_request') {
     throw AppError.badRequest('type must be "bug" or "feature_request"');
   }
+
   if (
     status !== undefined &&
     status !== 'open' &&
@@ -55,13 +59,13 @@ export const getAllIssues = asyncHandler(async (req: Request, res: Response) => 
     throw AppError.badRequest('status must be "open", "in_progress", or "resolved"');
   }
 
-  const query: GetIssuesQuery = {
+  const issuesQuery: GetIssuesQuery = {
     sort: (sort as GetIssuesQuery['sort']) ?? 'newest',
-    type: type as GetIssuesQuery['type'],
-    status: status as GetIssuesQuery['status'],
+    ...(type !== undefined && { type: type as IssueType }),
+    ...(status !== undefined && { status: status as IssueStatus }),
   };
 
-  const issues = await issuesService.getAllIssues(query);
+  const issues = await issuesService.getAllIssues(issuesQuery);
 
   sendSuccess(res, 200, 'Issues retrieved successfully', issues);
 });
@@ -107,7 +111,17 @@ export const updateIssue = asyncHandler(async (req: Request, res: Response) => {
     throw AppError.badRequest('Validation failed', errors);
   }
 
-  const updated = await issuesService.updateIssue(id, req.user!.id, req.user!.role, body);
+  const patch: Partial<UpdateIssueBody> = {};
+  if (body.title !== undefined) patch.title = body.title.trim();
+  if (body.description !== undefined) patch.description = body.description.trim();
+  if (body.type !== undefined) patch.type = body.type;
+  if (body.status !== undefined) patch.status = body.status;
+
+  if (Object.keys(patch).length === 0) {
+    throw AppError.badRequest('At least one field must be provided to update');
+  }
+
+  const updated = await issuesService.updateIssue(id, req.user!.id, req.user!.role, patch);
 
   sendSuccess(res, 200, 'Issue updated successfully', updated);
 });

@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { asyncHandler, AppError } from '../../utils/errors.util';
 import { sendSuccess } from '../../utils/response.util';
 import { registerUser, loginUser } from './auth.service';
@@ -8,7 +8,7 @@ import {
   validatePassword,
   validateRole,
 } from '../../utils/validation.util';
-import { SignupRequestBody, LoginRequestBody } from './auth.types';
+import type { SignupRequestBody, LoginRequestBody } from './auth.types';
 
 export const signup = asyncHandler(async (req: Request, res: Response) => {
   const body = req.body as Partial<SignupRequestBody>;
@@ -31,7 +31,7 @@ export const signup = asyncHandler(async (req: Request, res: Response) => {
     name: body.name!.trim(),
     email: body.email!.trim().toLowerCase(),
     password: body.password!,
-    role: body.role,
+    role: body.role!,
   });
 
   sendSuccess(res, 201, 'User registered successfully', user);

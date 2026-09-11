@@ -2,8 +2,8 @@ import { pool } from '../../config/db';
 import { AppError } from '../../utils/errors.util';
 import { hashPassword, comparePassword } from '../../utils/password.util';
 import { signToken } from '../../utils/jwt.util';
-import { PublicUser, UserRecord, UserRole } from '../../types/models';
-import { SignupRequestBody, LoginRequestBody } from './auth.types';
+import type { PublicUser, UserRecord, UserRole } from '../../types/models';
+import type { SignupRequestBody, LoginRequestBody } from './auth.types';
 
 function toPublicUser(user: UserRecord): PublicUser {
   return {
@@ -16,10 +16,6 @@ function toPublicUser(user: UserRecord): PublicUser {
   };
 }
 
-/**
- * Registers a new user. Rejects duplicate emails with 400 (per spec's
- * "duplicate resource" usage of the 400 status code).
- */
 export async function registerUser(body: SignupRequestBody): Promise<PublicUser> {
   const { name, email, password } = body;
   const role: UserRole = body.role ?? 'contributor';
@@ -42,12 +38,14 @@ export async function registerUser(body: SignupRequestBody): Promise<PublicUser>
     [name, email, hashedPassword, role]
   );
 
-  return toPublicUser(result.rows[0]);
+  const user = result.rows[0];
+  if (!user) {
+    throw AppError.internal('Failed to create user');
+  }
+
+  return toPublicUser(user);
 }
 
-/**
- * Authenticates a user and returns a signed JWT plus the public user profile.
- */
 export async function loginUser(
   body: LoginRequestBody
 ): Promise<{ token: string; user: PublicUser }> {

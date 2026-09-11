@@ -1,7 +1,4 @@
-/**
- * Lightweight, dependency-free validation helpers.
- * Each function returns an error string, or null if the value is valid.
- */
+
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

@@ -1,8 +1,6 @@
-/**
- * Custom application error carrying an HTTP status code.
- * Thrown from services/controllers and caught by the centralized
- * error-handling middleware (see middleware/error.middleware.ts).
- */
+import type { NextFunction, Request, Response } from "express";
+
+
 export class AppError extends Error {
   public readonly statusCode: number;
   public readonly errors?: unknown;
@@ -40,12 +38,8 @@ export class AppError extends Error {
   }
 }
 
-/**
- * Wraps an async Express route handler so any rejected promise
- * is forwarded to next(), letting the centralized error middleware
- * handle it instead of requiring try/catch in every controller.
- */
-import { NextFunction, Request, Response } from 'express';
+
+
 
 type AsyncHandler = (
   req: Request,

@@ -1,8 +1,7 @@
 import { Pool } from 'pg';
 import { env } from './env';
 
-// Single shared connection pool. Always use pool.query() directly -
-// no ORM, no query builder, no JOINs per project requirements.
+
 export const pool = new Pool({
   connectionString: env.databaseUrl,
   ssl: env.nodeEnv === 'production' || env.databaseUrl.includes('sslmode=require')
@@ -14,7 +13,6 @@ export const pool = new Pool({
 });
 
 pool.on('error', (err) => {
-  // Errors on idle clients in the pool should not crash the process.
   console.error('Unexpected PostgreSQL pool error:', err);
 });
 
@@ -22,7 +20,7 @@ export async function testConnection(): Promise<void> {
   const client = await pool.connect();
   try {
     await client.query('SELECT 1');
-    console.log('✅ Database connection established.');
+    console.log('Database connection established.');
   } finally {
     client.release();
   }

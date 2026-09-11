@@ -1,4 +1,5 @@
-import { Response } from 'express';
+import type { Response } from "express";
+
 
 interface SuccessBody<T> {
   success: true;
@@ -12,9 +13,6 @@ interface ErrorBody {
   errors?: unknown;
 }
 
-/**
- * Sends a standardized success response.
- */
 export function sendSuccess<T>(
   res: Response,
   statusCode: number,
@@ -28,9 +26,6 @@ export function sendSuccess<T>(
   });
 }
 
-/**
- * Sends a standardized error response.
- */
 export function sendError(
   res: Response,
   statusCode: number,

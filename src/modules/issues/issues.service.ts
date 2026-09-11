@@ -1,18 +1,14 @@
 import { pool } from '../../config/db';
 import { AppError } from '../../utils/errors.util';
-import {
+import type {
   IssueRecord,
   IssueWithReporter,
   ReporterSummary,
   UserRole,
 } from '../../types/models';
-import { CreateIssueBody, GetIssuesQuery, UpdateIssueBody } from './issues.types';
+import type { CreateIssueBody, GetIssuesQuery, UpdateIssueBody } from './issues.types';
 
-/**
- * Batch-fetches reporter summaries for a set of issues WITHOUT using SQL JOINs,
- * per project requirements. Uses a single `WHERE id IN (...)` query instead of
- * N+1 individual lookups.
- */
+
 async function attachReporters(issues: IssueRecord[]): Promise<IssueWithReporter[]> {
   if (issues.length === 0) return [];
 
@@ -48,7 +44,12 @@ export async function createIssue(
     [body.title, body.description, body.type, reporterId]
   );
 
-  return result.rows[0];
+  const issue = result.rows[0];
+  if (!issue) {
+    throw AppError.internal('Failed to create issue');
+  }
+
+  return issue;
 }
 
 export async function getAllIssues(query: GetIssuesQuery): Promise<IssueWithReporter[]> {
@@ -78,7 +79,6 @@ export async function getAllIssues(query: GetIssuesQuery): Promise<IssueWithRepo
 
   return attachReporters(result.rows);
 }
-
 export async function getIssueById(id: number): Promise<IssueWithReporter> {
   const result = await pool.query<IssueRecord>(
     `SELECT id, title, description, type, status, reporter_id, created_at, updated_at
@@ -92,13 +92,13 @@ export async function getIssueById(id: number): Promise<IssueWithReporter> {
   }
 
   const [withReporter] = await attachReporters([issue]);
+  if (!withReporter) {
+    throw AppError.internal('Failed to attach reporter to issue');
+  }
+
   return withReporter;
 }
 
-/**
- * Fetches the raw issue row (no reporter attached). Used internally
- * for permission checks before mutating operations.
- */
 async function getRawIssueById(id: number): Promise<IssueRecord> {
   const result = await pool.query<IssueRecord>(
     `SELECT id, title, description, type, status, reporter_id, created_at, updated_at
@@ -128,12 +128,10 @@ export async function updateIssue(
     throw AppError.forbidden('You can only update your own issues');
   }
 
-  // Only maintainers may change workflow status independently.
   if (body.status !== undefined && !isMaintainer) {
     throw AppError.forbidden('Only maintainers can change issue status');
   }
 
-  // Contributors may only edit their own issue while it is still open.
   if (!isMaintainer && issue.status !== 'open') {
     throw AppError.conflict('This issue can no longer be edited because it is not open');
   }
@@ -172,7 +170,12 @@ export async function updateIssue(
     params
   );
 
-  return result.rows[0];
+  const updatedIssue = result.rows[0];
+  if (!updatedIssue) {
+    throw AppError.internal('Failed to update issue');
+  }
+
+  return updatedIssue;
 }
 
 export async function deleteIssue(id: number): Promise<void> {
