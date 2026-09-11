@@ -9,8 +9,6 @@ A RESTful backend API for managing software issues and feature requests. DevPuls
 > https://devpulse-leq1m3835-mariajahanchowdhury27-3511s-projects.vercel.app/
 
 ---
-#Vercel Link
->https://vercel.com/mariajahanchowdhury27-3511s-projects/devpulse/Eve1rC9XVNghpeLYK8bq2qjP36cv
 
 ## ✨ Features
 
